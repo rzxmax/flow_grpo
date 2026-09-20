@@ -107,7 +107,6 @@ def ocr_score(device):
 
     return _fn
 
-
 def deqa_score_remote(device):
     """Submits images to DeQA and computes a reward.
     """

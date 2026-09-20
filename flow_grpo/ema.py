@@ -1,6 +1,7 @@
 # Copied from another repo, but I can't remember exactly which one.
 
 from collections.abc import Iterable
+from typing import Optional
 
 import torch
 
@@ -11,7 +12,7 @@ class EMAModuleWrapper:
             parameters: Iterable[torch.nn.Parameter],
             decay: float = 0.9999,
             update_step_interval: int = 1,
-            device: torch.device | None = None,
+            device: Optional[torch.device] = None,
     ):
         parameters = list(parameters)
         self.ema_parameters = [p.clone().detach().to(device) for p in parameters]
@@ -43,7 +44,7 @@ class EMAModuleWrapper:
         one_minus_decay = 1 - self.get_current_decay(optimization_step)
 
         if (optimization_step + 1) % self.update_step_interval == 0:
-            for ema_parameter, parameter in zip(self.ema_parameters, parameters, strict=True):
+            for ema_parameter, parameter in zip(self.ema_parameters, parameters):
                 if parameter.requires_grad:
                     if ema_parameter.device == parameter.device:
                         ema_parameter.add_(one_minus_decay * (parameter - ema_parameter))
@@ -55,7 +56,7 @@ class EMAModuleWrapper:
                         ema_parameter.add_(parameter_copy)
                         del parameter_copy
 
-    def to(self, device: torch.device = None, dtype: torch.dtype = None) -> None:
+    def to(self, device: Optional[torch.device] = None, dtype: Optional[torch.dtype] = None) -> None:
         self.device = device
         self.ema_parameters = [
             p.to(device=device, dtype=dtype) if p.is_floating_point() else p.to(device=device)
@@ -67,11 +68,11 @@ class EMAModuleWrapper:
             self.temp_stored_parameters = [parameter.detach().cpu() for parameter in parameters]
 
         parameters = list(parameters)
-        for ema_parameter, parameter in zip(self.ema_parameters, parameters, strict=True):
+        for ema_parameter, parameter in zip(self.ema_parameters, parameters):
             parameter.data.copy_(ema_parameter.to(parameter.device).data)
 
     def copy_temp_to(self, parameters: Iterable[torch.nn.Parameter]) -> None:
-        for temp_parameter, parameter in zip(self.temp_stored_parameters, parameters, strict=True):
+        for temp_parameter, parameter in zip(self.temp_stored_parameters, parameters):
             parameter.data.copy_(temp_parameter.data)
 
         self.temp_stored_parameters = None

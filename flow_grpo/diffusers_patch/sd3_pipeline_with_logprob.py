@@ -182,7 +182,7 @@ def pipeline_with_logprob(
         max_sequence_length=max_sequence_length,
     )
 
-    self._guidance_scale = guidance_scale
+    self._guidance_scale = guidance_scale # 将外部传入的变量，赋值给内部属性
     self._skip_layer_guidance_scale = skip_layer_guidance_scale
     self._clip_skip = clip_skip
     self._joint_attention_kwargs = joint_attention_kwargs
@@ -201,6 +201,8 @@ def pipeline_with_logprob(
     lora_scale = (
         self.joint_attention_kwargs.get("scale", None) if self.joint_attention_kwargs is not None else None
     )
+
+
     (
         prompt_embeds,
         negative_prompt_embeds,
@@ -245,6 +247,7 @@ def pipeline_with_logprob(
     )
 
     # 5. Prepare timesteps
+    # mu 应该是根据一些参数生成一个值，用于动态调整 timesteps 的变化
     scheduler_kwargs = {}
     if self.scheduler.config.get("use_dynamic_shifting", None) and mu is None:
         _, _, height, width = latents.shape

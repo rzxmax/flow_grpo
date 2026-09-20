@@ -176,7 +176,7 @@ def calculate_zero_std_ratio(prompts, gathered_rewards):
     
     return zero_std_ratio
     
-
+# 获取控制噪声强度的 sigma 值
 def get_sigmas(noise_scheduler, timesteps, accelerator, n_dim=4, dtype=torch.float32):
     sigmas = noise_scheduler.sigmas.to(device=accelerator.device, dtype=dtype)
     schedule_timesteps = noise_scheduler.timesteps.to(accelerator.device)
@@ -939,7 +939,7 @@ def main(_):
                             1.0 + config.train.clip_range,
                         )
                         policy_loss = torch.mean(torch.maximum(unclipped_loss, clipped_loss))
-                        if config.train.beta > 0:
+                        if config.train.beta > 0: # 也就是启动 KL 约束
                             kl_loss = ((prev_sample_mean - prev_sample_mean_ref) ** 2).mean(dim=(1,2,3), keepdim=True) / (2 * std_dev_t ** 2)
                             kl_loss = torch.mean(kl_loss)
                             loss = policy_loss + config.train.beta * kl_loss
